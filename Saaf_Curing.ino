@@ -1,21 +1,7 @@
+//Pilotage du Saaf pour Curing
+//Harold THIBAULT juin 2018
 
 
-/**************************************************************************/
-/*!
-    @file     trianglewave.pde
-    @author   Adafruit Industries
-    @license  BSD (see license.txt)
-
-    This example will generate a triangle wave with the MCP4725 DAC.
-
-    This is an example sketch for the Adafruit MCP4725 breakout board
-    ----> http://www.adafruit.com/products/935
-
-    Adafruit invests timer and resources providing this open source code,
-    please support Adafruit and open-source hardware by purchasing
-    products from Adafruit!
-*/
-/**************************************************************************/
 #include <Wire.h> //  pour l'I2C avec SDA sur pin A4 et scl sur A5
 #include <Adafruit_MCP4725.h> //  I2C device
 #include <SPI.h>  //  pour le SPI
