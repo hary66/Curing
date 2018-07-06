@@ -131,27 +131,55 @@ void loop(void) {
              temp_fin_de_cycle = 0;
 
   now = millis();
-
-  if (!Treatment) {
-    WaitForParameter();
+  switch (Treatment) {
+    case 1 :
+      { static bool INIT = true;
+        if (INIT) {
+          temp_palier = 1050;
+          rampe = 24;
+          duree_palier = 35;
+          rampe_cooling1 = 30;
+          palier_intermediaire = 900;
+          rampe_cooling2 = 17;
+          temp_fin_de_cycle = 150;
+          RUN = 1;
+          INIT = false;
+        }
+      }
+      break;
+    case 2 :
+      { static bool INIT = true;
+        if (INIT) {
+          temp_palier = 795;
+          rampe = 24;
+          duree_palier = 70;
+          rampe_cooling = 16;
+          temp_fin_de_cycle = 150;
+          RUN = 1;
+          INIT = false;
+        }
+      }
+      break;
+    case 3 :
+      {
+        RUN = 0;
+        Treatment = 4;
+      }
+      break;
+    case 4 :
+      {
+        AskForParameter();
+      }
+      break;
+    case 0 :
+      {
+        WaitForParameter();
+      }
+      break;
+    default:
+      break;
   }
-  if (Treatment == 1) {
-    temp_palier = 1050;
-    rampe = 24;
-    duree_palier = 35;
-    rampe_cooling1 = 30;
-    palier_intermediaire = 900;
-    rampe_cooling2 = 17;
-    temp_fin_de_cycle = 150;
-    RUN = 1;
-  } else if (Treatment == 2) {
-    temp_palier = 795;
-    rampe = 24;
-    duree_palier = 70;
-    rampe_cooling = 16;
-    temp_fin_de_cycle = 150;
-    RUN = 1;
-  }
+ 
   switch (RUN) {
     case 1 :
       DoGradient(temperatures.feedback, rampe, temp_palier);
@@ -190,7 +218,7 @@ void loop(void) {
 //  ###############################################################
 
 //  ###############################################################
-//  ##########            Setup function             ##############
+//  ########       définition Setup function            ###########
 //  ###############################################################
 void  setup_DAC_MCP4725(byte const & address) {
   // For Adafruit MCP4725A1 the address is 0x62 (default) or 0x63 (ADDR pin tied to VCC)
@@ -225,7 +253,7 @@ void set_PID() {
 
 }
 //  ###############################################################
-//  ##########            Fonctions          #######################
+//  ######          définition Fonctions          #################
 //  ###############################################################
 
 Temp readTemp(const unsigned int &timer) { //  renvoie un struct Temp !
@@ -314,7 +342,8 @@ void updateMonitor(int const & taux_rafraichissement) { // ####### Rafraichit l'
       Serial.println(F("Something wrong with thermocouple!"));
       //Serial.println("Something wrong with thermocouple!#######################################################");
     } else {
-      Serial.print("<\t");
+      Serial.print(Treatment);
+      Serial.print("\t");
       Serial.print(now);
       Serial.print("\t");
       Serial.print(timer);
@@ -504,6 +533,14 @@ void WaitForParameter() {
         AskForParameter();
       }
     }
+  }
+}
+char CheckingForIncomingCommand() {
+  char Input = ('\0');
+  if (Serial.available()) {
+    Input = (Serial.read());
+    Serial.print("Vous avez envoyé la commande : ");
+    Serial.println(Input);
   }
 }
 
