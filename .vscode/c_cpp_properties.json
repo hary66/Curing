@@ -1,0 +1,61 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries",
+                "/home/harold/Arduino/libraries",
+                "${workspaceFolder}/**",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/Wire/src",
+                "/home/harold/Arduino/libraries/Adafruit_MCP4725/",
+                "/home/harold/Arduino/libraries/Adafruit_MAX31855_library/",
+                "/home/harold/Arduino/libraries/Adafruit_ADS1X15/",
+                "/home/harold/Arduino/libraries/PID/",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/variants/standard",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/cores/arduino/",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/EEPROM/",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/HID/",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/SPI/src",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/SoftwareSerial/",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/Wire/",
+                "/home/harold/arduino-1.8.5/hardware/tools/avr/avr/include/",
+                "/home/harold/arduino-1.8.5/hardware/tools/avr/avr/include/avr/",
+                "/home/harold/arduino-1.8.5/hardware/tools/avr/avr/include/compat/",
+                "/home/harold/arduino-1.8.5/hardware/tools/avr/avr/include/util/",
+                "/home/harold/arduino-1.8.5/hardware/tools/avr/lib/gcc/avr/4.*.*/include/",
+                "/home/harold/arduino-1.8.5/hardware/tools/avr/lib/gcc/avr/4.*.*/include-fixed/",
+                "/home/harold/arduino-1.8.5/libraries/Bridge/src/",
+                "/home/harold/arduino-1.8.5/libraries/Esplora/src/",
+                "/home/harold/arduino-1.8.5/libraries/Ethernet/src/",
+                "/home/harold/arduino-1.8.5/libraries/Firmata/src/",
+                "/home/harold/arduino-1.8.5/libraries/GSM/src/",
+                "/home/harold/arduino-1.8.5/libraries/LiquidCrystal/src/",
+                "/home/harold/arduino-1.8.5/libraries/Robot_Control/src/",
+                "/home/harold/arduino-1.8.5/libraries/RobotIRremote/src/",
+                "/home/harold/arduino-1.8.5/libraries/Robot_Motor/src/",
+                "/home/harold/arduino-1.8.5/libraries/SD/src/",
+                "/home/harold/arduino-1.8.5/libraries/Servo/src/",
+                "/home/harold/arduino-1.8.5/libraries/SpacebrewYun/src/",
+                "/home/harold/arduino-1.8.5/libraries/Stepper/src/",
+                "/home/harold/arduino-1.8.5/libraries/Temboo/src/",
+                "/home/harold/arduino-1.8.5/libraries/TFT/src/",
+                "/home/harold/arduino-1.8.5/libraries/WiFi/src/",
+                "/home/harold/arduino-1.8.5/hardware/arduino/avr/libraries/SoftwareSerial/src"
+            ],
+            "defines": [
+                "ARDUINO=120","UBRRH"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "path": [
+                    "/home/harold/arduino-1.8.5/hardware/arduino/avr/cores/arduino"
+                ]
+            }
+        }
+    ],
+    "version": 4
+}

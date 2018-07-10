@@ -19,10 +19,10 @@
 #include <Wire.h> //  pour l'I2C avec SDA sur pin A4 et scl sur A5
 #include <Adafruit_MCP4725.h> //  I2C device
 #include <SPI.h>  //  pour le SPI
-#include "Adafruit_MAX31855.h"  //  SPI device
+#include <Adafruit_MAX31855.h>  //  SPI device
 #include <Adafruit_ADS1015.h>
 #include <PID_v1.h> //  bibliothèque régulateur PID
-
+#include <HardwareSerial.h>
 
 #define ledPin 13  //  pour débuguer
 
@@ -109,7 +109,7 @@ void setup(void) {
   //  pinMode(10, OUTPUT);
   pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
-  Serial.println("Hello!");
+  Serial.println("Hello");
   setup_DAC_MCP4725(0x60);  //  MCP4725 at 0x60 I2C adress
   setup_ADC_ADS1115(); //    ADS1115 at 0x48 I2C adress gain2/3
   dac.setVoltage(0, false);
