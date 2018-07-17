@@ -1,6 +1,6 @@
 {
     "sketch": "Saaf_Curing.ino",
-    "port": "/dev/ttyUSB0",
+    "port": "/dev/ttyUSB1",
     "board": "arduino:avr:nano",
     "output": "../build",
     "configuration": "cpu=atmega328"

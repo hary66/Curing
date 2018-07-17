@@ -69,7 +69,7 @@ int sortie_MCP = 0;
 int RUN = 0;
 unsigned int timer_update_sortie_MCP = 10;
 int MCP_step = 5;
-bool temperaturePyro = false;  // Active Feedback sur pyrometre si "true"
+bool temperaturePyro = false; // Active Feedback sur pyrometre si "true"
 //  ################# PID ###################
 //Define Variables we'll be connecting to
 double setpoint = 0.0;
@@ -295,7 +295,7 @@ Temp readTemp(const unsigned int &timer)
         temperatures.flag_pyro = Tc_K_ON;
       }
     }
-  
+
     // temperatures.feedback = analogRead(A0);
     last_read_temp = now;
   }
@@ -420,8 +420,8 @@ void DoGradient(double const &temp_initiale, int const &rampe, unsigned int cons
       Serial.print(Global_RUN);
       Serial.print(" endded");
       ++Global_RUN;
-      INIT = true;    
-      Serial.print("\t\tGlobal_RUN_= ");  
+      INIT = true;
+      Serial.print("\t\tGlobal_RUN_= ");
       Serial.println(Global_RUN);
       timer_led = 250;
     }
@@ -463,10 +463,9 @@ void DoPalier(unsigned int const &duree_palier, unsigned int const &temp_palier,
       Serial.print(Global_RUN);
       Serial.print(" endded");
       ++Global_RUN;
-      INIT = true;    
-      Serial.print("\t\tGlobal_RUN_= ");  
+      INIT = true;
+      Serial.print("\t\tGlobal_RUN_= ");
       Serial.println(Global_RUN);
-      
     }
   }
 }
@@ -495,7 +494,7 @@ void DoAllWhatNeeded(const unsigned long &now)
   //Serial.println("DoAllWhatNeeded");
 }
 
-void update_sortie_MCP(unsigned int timer)
+/* void update_sortie_MCP(unsigned int timer)
 {
   static unsigned long last_update_sortie_MCP = 0;
   int sortie_commande = int(round((sin(output / 162.338041954)) * 4095));
@@ -514,6 +513,16 @@ void update_sortie_MCP(unsigned int timer)
     }
     last_update_sortie_MCP = now;
   }
+}
+ */
+void update_sortie_MCP(unsigned int timer)
+{
+  static unsigned long last_update_sortie_MCP = 0;
+  if (now - last_update_sortie_MCP > timer_update_sortie_MCP)
+  {
+    sortie_MCP = int(round((sin(output / 162.338041954)) * 4095));
+  }
+  last_update_sortie_MCP = now;
 }
 
 void AskForParameter()
