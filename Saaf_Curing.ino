@@ -76,9 +76,7 @@ double input = 0;
 double output = 0;
 //Specify the links and initial tuning parameters
 double Kp = 10;
-//double Kp = 2;
 double Ki = 0.5;
-//double Ki = 0;
 const double Kd = 0;
 //char[] POn = P_ON_E);  //  pour les paliers
 char *POn = P_ON_M; //   Proportional on Measurement (pour les rampes)
@@ -703,9 +701,9 @@ void Treatment_6()
 }
 void Treatment_7()
 {
-  DoGradient(temperatures.feedback, 50, 400, 1);
-  DoPalier(10, 400, 2);
-  DoGradient(temperatures.feedback, 16, 100, 3);
+  DoGradient(temperatures.feedback, 75, 600, 1);
+  DoPalier(3, 600, 2);
+  DoGradient(temperatures.feedback, 75, 100, 3);
   end(4);
 }
 void end(int const &RUN)
