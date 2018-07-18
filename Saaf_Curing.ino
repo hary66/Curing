@@ -45,7 +45,7 @@ String capteur[2] = {"Tc_K_ON", "Pyro_ON"};
 struct Temp
 {
   double Tc_K;         //  en °C
-  double internal_C;   //  en °C
+  double ambiante;   //  en °C
   double T_pyro;       //  en °C
   double feedback;     //  en °C
   double adc1_Voltage; //  en V
@@ -63,12 +63,11 @@ int taux_rafraichissement_output(200);           // période de rafraichissement
 bool etat_pin_debug = false;
 double c = 0;
 int Global_RUN = 0;
-Temp temperatures; //  struct Temp{double Tc_K; double internal_C; double T_pyro; double feedback; sortie_capteur flag_pyro; };
+Temp temperatures; //  struct Temp{double Tc_K; double ambiante; double T_pyro; double feedback; sortie_capteur flag_pyro; };
 int Treatment = 0; //  type de traitement
 int sortie_MCP = 0;
 int RUN = 0;
 unsigned int timer_update_sortie_MCP = 10;
-int MCP_step = 5;
 bool temperaturePyro = false; // Active Feedback sur pyrometre si "true"
 //  ################# PID ###################
 //Define Variables we'll be connecting to
@@ -76,8 +75,10 @@ double setpoint = 0.0;
 double input = 0;
 double output = 0;
 //Specify the links and initial tuning parameters
-double Kp = 2;
-double Ki = 0;
+double Kp = 10;
+//double Kp = 2;
+double Ki = 0.5;
+//double Ki = 0;
 const double Kd = 0;
 //char[] POn = P_ON_E);  //  pour les paliers
 char *POn = P_ON_M; //   Proportional on Measurement (pour les rampes)
@@ -233,12 +234,11 @@ Temp readTemp(const unsigned int &timer)
       static unsigned int ERR = 0;
       ERR++;
       temperatures.nb_of_errors = ERR;
-      Serial.println("");
-      Serial.print("nb_of_errors");
+      Serial.print("\nnb_of_errors");
       Serial.println(temperatures.nb_of_errors);
     }
 
-    temperatures.internal_C = thermocouple.readInternal();
+    temperatures.ambiante = thermocouple.readInternal();
     // ####### calcul la pente et l'ordonnée a l'origine de la fonction de la sortie du pyro en fonction de 2 points
     typedef double Point[2];
     Point A = {0, 250}, B{4, 1200};
@@ -310,49 +310,29 @@ void updateMonitor(int const &taux_rafraichissement)
   int timer = now - last_update_monitor;
   if (timer > taux_rafraichissement)
   {
-    if (isnan(c))
-    {
-      Serial.println("");
-      Serial.println(F("Something wrong with thermocouple!"));
-      //Serial.println("Something wrong with thermocouple!#######################################################");
-    }
-    else
-    {
-      Serial.print(Treatment);
-      Serial.print("\t");
-      Serial.print(now);
-      Serial.print("\t");
-      Serial.print(timer);
-      Serial.print("\t");
-      Serial.print(temperatures.internal_C);
-      Serial.print("\t");
-      if (isnan(c))
-      {
-        Serial.println(F("Something wrong with thermocouple!"));
-      }
-      else
-      {
-        Serial.print(temperatures.Tc_K);
-      }
-      Serial.print("\t");
-      Serial.print(setpoint);
-      Serial.print("\t");
-      Serial.print(input);
-      Serial.print("\t");
-      Serial.print(temperatures.flag_pyro);
-      Serial.print("\t");
-      //Serial.print("temperatures.T_pyro : ");
-      Serial.print(temperatures.T_pyro);
-      Serial.print("\t");
-      Serial.print(sortie_MCP); //  0<MCP4725<4095
-      Serial.print("\t");
-      Serial.print(temperatures.adc1_Voltage);
-      Serial.print("\t");
-      Serial.println(temperatures.nb_of_errors);
-      //      Serial.print("\t");
-      //      Serial.println();
-      last_update_monitor = now; //  pour le serial monitor
-    }
+    Serial.print("<");
+    Serial.print("\t");
+    Serial.print(temperatures.ambiante);
+    Serial.print("\t");
+    Serial.print(temperatures.Tc_K);
+    Serial.print("\t");
+    Serial.print(setpoint);
+    Serial.print("\t");
+    Serial.print(input);
+    Serial.print("\t");
+    Serial.print(temperatures.flag_pyro);
+    Serial.print("\t");
+    //Serial.print("temperatures.T_pyro : ");
+    Serial.print(temperatures.T_pyro);
+    Serial.print("\t");
+    Serial.print(sortie_MCP); //  0<MCP4725<4095
+    Serial.print("\t");
+    Serial.print(temperatures.adc1_Voltage);
+    Serial.print("\t");
+    Serial.println(temperatures.nb_of_errors);
+    //      Serial.print("\t");
+    //      Serial.println();
+    last_update_monitor = now; //  pour le serial monitor
   }
 }
 
@@ -378,6 +358,7 @@ void DoGradient(double const &temp_initiale, int const &rampe, unsigned int cons
     static unsigned long start_time_gradient = 0;
     static double temp_depart = 0;
     static double temp_fin = 0;
+    static bool cooling = false;
 
     if (INIT)
     {
@@ -388,20 +369,28 @@ void DoGradient(double const &temp_initiale, int const &rampe, unsigned int cons
       Serial.print("\ttemp_depart : ");
       Serial.println(temp_depart);
       temp_fin = temp_finale;
+      if (temp_depart > temp_fin){
+        cooling = true;
+        rampe_ms = - rampe_ms;
+      }
       duree_rampe = (temp_fin - temp_depart) / rampe_ms; //  en ms
       //  Serial.print("    duree_rampe_ms : ");
       //  Serial.print(duree_rampe);
       start_time_gradient = now;
-      timer_led = 500;
+      timer_led = 1000;
       INIT = !INIT;
     }
     unsigned long elapsed_time = now - start_time_gradient;
     //    Serial.print("    elapsedd_time : ");
     //    Serial.println(elapsed_time);
     setpoint = temp_depart + elapsed_time * rampe_ms;
-    if (setpoint > temp_fin)
+    if (!cooling && (setpoint > temp_fin))
     {
       setpoint = temp_fin;
+    }
+    else if (cooling && (setpoint < temp_fin)){
+      setpoint = temp_fin;
+
     }
     DoAllWhatNeeded(now);
     //    Serial.print("DoGradient; now = ");
@@ -410,19 +399,37 @@ void DoGradient(double const &temp_initiale, int const &rampe, unsigned int cons
     long remaining_time = duree_rampe - elapsed_time;
     if (remaining_time > 0)
     {
-      Serial.print("remaining_time : ");
+      Serial.print("\nremaining_time : ");
       Serial.print(remaining_time);
-    }
+      Serial.print("\t\tGlobal_RUN_= ");
+      Serial.println(Global_RUN);
+         }
     else
     {
-      Serial.println("Timer gradient over !");
-      Serial.print("DoGradient ");
+      Serial.print("Timer gradient over !\nDoGradient");
       Serial.print(Global_RUN);
       Serial.print(" endded");
       ++Global_RUN;
       INIT = true;
+      cooling = false;
       Serial.print("\t\tGlobal_RUN_= ");
       Serial.println(Global_RUN);
+      timer_led = 250;
+    }
+    if (CheckingForIncomingCommand() == 113)
+    {
+      Serial.print("treatment prematurely aborted !\nDoGradient");
+      Serial.print(Global_RUN);
+      Serial.print(" aborted");
+      Global_RUN = 0;
+      INIT = true;
+      cooling = false;
+      dac.setVoltage(0, false);
+      Treatment = 0;
+      Serial.print("\t\tGlobal_RUN_= ");
+      Serial.print(Global_RUN);
+      Serial.print("\t\tINIT = ");
+      Serial.println(INIT);
       timer_led = 250;
     }
   }
@@ -450,22 +457,39 @@ void DoPalier(unsigned int const &duree_palier, unsigned int const &temp_palier,
     DoAllWhatNeeded(now);
     Serial.print("DoPalier; now = ");
     Serial.print(now);
-    Serial.print("    remaining_time palier(ms) :  ");
+    Serial.print("\tremaining_time palier(ms) :  ");
     long remaining_time = duree_ms - elapsed_time;
     if (remaining_time > 0)
     {
+      Serial.print("remaining_time : ");
       Serial.println(remaining_time);
+      timer_led = 1000;
     }
     else
     {
-      Serial.println("Timer palier over !");
-      Serial.print("DoPalier ");
+      Serial.print("Timer palier over !\nDoPalier");
       Serial.print(Global_RUN);
       Serial.print(" endded");
       ++Global_RUN;
       INIT = true;
+      timer_led = 250;
       Serial.print("\t\tGlobal_RUN_= ");
       Serial.println(Global_RUN);
+    }
+    if (CheckingForIncomingCommand() == 113)
+    {
+      Serial.print("treatment prematurely aborted !\nDoPalier");
+      Serial.print(Global_RUN);
+      Serial.print(" aborted");
+      Global_RUN = 0;
+      INIT = true;
+      dac.setVoltage(0, false);
+      Treatment = 0;
+      Serial.print("\t\tGlobal_RUN_= ");
+      Serial.print(Global_RUN);
+      Serial.print("\t\tINIT = ");
+      Serial.println(INIT);
+      timer_led = 250;
     }
   }
 }
@@ -535,12 +559,12 @@ void AskForParameter()
   Serial.println(F("  5 for austenitizing (cycle Nassheuer)"));
   Serial.println(F("  6 for tempering (cycle Sottri)"));
   Serial.println(F("  7 for testing"));
+  Serial.println(F("  q to abort curing"));
   Treatment = 8;
 }
 
 void WaitForParameter()
 {
-
   //while (1 < Input_int < 6)
   //{
   //updateLed(now, 100);
@@ -606,7 +630,9 @@ char CheckingForIncomingCommand()
     Input = (Serial.read());
     Serial.print("Vous avez envoyé la commande : ");
     Serial.println(Input);
+    return int(Input);
   }
+  return;
 }
 
 //  ######  For debug purpose only  ##########
@@ -632,14 +658,14 @@ void Treatment_1()
   DoPalier(60, 100, 2);
   DoGradient(temperatures.feedback, 5, 330, 3);
   DoPalier(60, 330, 4);
-  DoGradient(temperatures.feedback, 10, temperatures.internal_C, 5);
+  DoGradient(temperatures.feedback, 10, temperatures.ambiante, 5);
   end(6);
 }
 void Treatment_2()
 {
   DoGradient(temperatures.feedback, 10, 480, 1);
   DoPalier(240, 480, 2);
-  DoGradient(temperatures.feedback, 10, temperatures.internal_C, 3);
+  DoGradient(temperatures.feedback, 10, temperatures.ambiante, 3);
   end(4);
 }
 void Treatment_3()
@@ -650,14 +676,14 @@ void Treatment_3()
   DoPalier(60, 330, 4);
   DoGradient(temperatures.feedback, 5, 540, 5);
   DoPalier(120, 540, 6);
-  DoGradient(temperatures.feedback, 10, temperatures.internal_C, 7);
+  DoGradient(temperatures.feedback, 10, temperatures.ambiante, 7);
   end(8);
 }
 void Treatment_4()
 {
   DoGradient(temperatures.feedback, 10, 600, 1);
   DoPalier(120, 600, 2);
-  DoGradient(temperatures.feedback, 10, temperatures.internal_C, 3);
+  DoGradient(temperatures.feedback, 10, temperatures.ambiante, 3);
   end(4);
 }
 void Treatment_5()
@@ -677,15 +703,16 @@ void Treatment_6()
 }
 void Treatment_7()
 {
-  DoGradient(temperatures.feedback, 500, 795, 1);
-  DoPalier(1, 795, 2);
-  DoGradient(temperatures.feedback, 16, 10, 3);
+  DoGradient(temperatures.feedback, 50, 400, 1);
+  DoPalier(10, 400, 2);
+  DoGradient(temperatures.feedback, 16, 100, 3);
   end(4);
 }
 void end(int const &RUN)
 {
   if (Global_RUN == RUN)
   {
+    dac.setVoltage(0, false);
     Global_RUN = 0;
     Treatment = 0;
     AskForParameter();
