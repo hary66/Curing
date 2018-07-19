@@ -2,33 +2,10 @@
 //Harold THIBAULT juin 2018
 
 
-<<<<<<< HEAD
 #include <Wire.h> //  pour l'I2C avec SDA sur pin A4 et scl sur A5
 #include <Adafruit_MCP4725.h> //  I2C device
 #include <SPI.h>  //  pour le SPI
 #include "Adafruit_MAX31855.h"  //  SPI device
-=======
-/**************************************************************************/
-/*!
-    @file     trianglewave.pde
-    @author   Adafruit Industries
-    @license  BSD (see license.txt)
-
-    This example will generate a triangle wave with the MCP4725 DAC.
-
-    This is an example sketch for the Adafruit MCP4725 breakout board
-    ----> http://www.adafruit.com/products/935
-
-    Adafruit invests timer and resources providing this open source code,
-    please support Adafruit and open-source hardware by purchasing
-    products from Adafruit!
-*/
-/**************************************************************************/
-#include <Wire.h>              //  pour l'I2C avec SDA sur pin A4 et scl sur A5
-#include <Adafruit_MCP4725.h>  //  I2C device
-#include <SPI.h>               //  pour le SPI
-#include <Adafruit_MAX31855.h> //  SPI device
->>>>>>> rajout_AbortCommand_q
 #include <Adafruit_ADS1015.h>
 #include <PID_v1.h> //  bibliothèque régulateur PID
 #include <HardwareSerial.h>
@@ -87,9 +64,6 @@ double output = 0;
 double Kp = 10;
 double Ki = 0.5;
 const double Kd = 0;
-//char[] POn = P_ON_E);  //  pour les paliers
-char *POn = P_ON_M; //   Proportional on Measurement (pour les rampes)
-//PID myPID(&feedback, &output, &Consigne, Kp, Ki, Kd, POn, DIRECT);
 PID myPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 
 //  ##############################################
@@ -101,12 +75,9 @@ Adafruit_ADS1115 ads(0x48); //  default I2C address (0x48)
 void setup_DAC_MCP4725(byte const &address);
 void setup_ADC_ADS1115();
 void set_PID();
-Temp readTemp(const unsigned int &timer); //  lit les température ambiante et TC_K (module MAS18855)
+Temp readTemp(const unsigned int &timer); //  lit les température ambiante et TC_K (module MAX18855)
 void updateMonitor(int const &taux_rafraichissement);
-
 void updateLed(int duree_blink);
-int lecture_potar();
-//int get_feedback(const unsigned long &now, unsigned long &last_lecture_feedback, const int timer);
 void DoAllWhatNeeded();
 void update_sortie_MCP(unsigned int timer);
 void DoGradient(double const &temp_initiale, int const &rampe, unsigned int const &temp_finale, int const &RUN);
@@ -118,12 +89,11 @@ void updateMCP4725(double const &sortie);
 void setup(void)
 {
   pinMode(A0, INPUT);
-  //  pinMode(10, OUTPUT);
   pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
   Serial.println("Hello");
   setup_DAC_MCP4725(0x60); //  MCP4725 at 0x60 I2C adress
-  setup_ADC_ADS1115();     //    ADS1115 at 0x48 I2C adress gain2/3
+  setup_ADC_ADS1115();     //  ADS1115 at 0x48 I2C adress gain2/3
   dac.setVoltage(0, false);
   set_PID();
   AskForParameter();
@@ -134,7 +104,6 @@ void setup(void)
 
 void loop(void)
 {
-
   now = millis();
   switch (Treatment)
   {
@@ -209,9 +178,6 @@ void set_PID()
   //PID initialize the variables we're linked to
   //turn the PID on
   myPID.SetMode(AUTOMATIC);
-  //myPID.SetOutputLimits(0, 1.570796327);  //  entre 0 et PI/2
-  //myPID.SetOutputLimits(0, 255);  //  entre 0 et 255 (valeurs par defaut)
-  //myPID.SetOutputLimits(0, 4095);  //  entre 0 et 4095, (la sortie du MCP4725)
   myPID.SetOutputLimits(0, 255); //  entre 0 et 4095, (la sortie du MCP4725)
 }
 //  ###############################################################
@@ -244,14 +210,12 @@ Temp readTemp(const unsigned int &timer)
       Serial.print("\nnb_of_errors");
       Serial.println(temperatures.nb_of_errors);
     }
-
     temperatures.ambiante = thermocouple.readInternal();
     // ####### calcul la pente et l'ordonnée a l'origine de la fonction de la sortie du pyro en fonction de 2 points
     typedef double Point[2];
     Point A = {0, 250}, B{4, 1200};
     static double pente = (B[1] - A[1]) / (B[0] - A[0]);
     static double offset = A[1] - A[0] * pente;
-    //double const ads_step = 0.125;  //  mV/bit
     double const ads_step = 0.1875; //  mV/bit
     double adc0_voltage = (adc0 * ads_step) / 1000;
     //  2 points A(250; 1) et B(1250; 5) y= a*adc0_voltage + b  a=(5-1)/(1250-250), a=1/250 1=250a+b, b=1-4a, b=1-4*1/250=0.984
@@ -271,7 +235,7 @@ Temp readTemp(const unsigned int &timer)
     //      Serial.print(">");
     //      Serial.print("\t");
     temperatures.adc1_Voltage = (adc1 * ads_step) / 1000;
-    temperatures.adc2_Voltage = (adc2 * ads_step) / 1000;
+    //temperatures.adc2_Voltage = (adc2 * ads_step) / 1000;
     //    Serial.print("\tpente : ");
     //    Serial.print(pente);
     //    Serial.print("\toffset : ");
@@ -298,12 +262,9 @@ Temp readTemp(const unsigned int &timer)
       else
       {
         temperatures.feedback = temperatures.Tc_K;
-        //temperatures.feedback = thermocouple.readCelsius();
         temperatures.flag_pyro = Tc_K_ON;
       }
     }
-
-    // temperatures.feedback = analogRead(A0);
     last_read_temp = now;
   }
   //Serial.println("readTemp");
@@ -329,16 +290,13 @@ void updateMonitor(int const &taux_rafraichissement)
     Serial.print("\t");
     Serial.print(temperatures.flag_pyro);
     Serial.print("\t");
-    //Serial.print("temperatures.T_pyro : ");
     Serial.print(temperatures.T_pyro);
     Serial.print("\t");
     Serial.print(sortie_MCP); //  0<MCP4725<4095
     Serial.print("\t");
-    Serial.print(temperatures.adc1_Voltage);
+    Serial.print(temperatures.adc1_Voltage); // recopie sortie MCP4725
     Serial.print("\t");
     Serial.println(temperatures.nb_of_errors);
-    //      Serial.print("\t");
-    //      Serial.println();
     last_update_monitor = now; //  pour le serial monitor
   }
 }
@@ -370,8 +328,6 @@ void DoGradient(double const &temp_initiale, int const &rampe, unsigned int cons
     if (INIT)
     {
       rampe_ms = rampe / (60.000 * 1000); // rampe en °C/ms au lieu de °C/min
-      //  Serial.print("rampe_ms : ");
-      //  Serial.print(rampe_ms);
       temp_depart = temp_initiale;
       Serial.print("\ttemp_depart : ");
       Serial.println(temp_depart);
@@ -397,7 +353,6 @@ void DoGradient(double const &temp_initiale, int const &rampe, unsigned int cons
     }
     else if (cooling && (setpoint < temp_fin)){
       setpoint = temp_fin;
-
     }
     DoAllWhatNeeded(now);
     //    Serial.print("DoGradient; now = ");
@@ -507,9 +462,6 @@ void DoAllWhatNeeded(const unsigned long &now)
   input = temperatures.feedback;
   myPID.Compute();
   Serial.print("\tmyPID.Compute();");
-  //  sortie_MCP = int(round(cos(output/255) * 4095));
-  //sortie_MCP = int(round(output));
-  //int sortie_commande = int(round((sin(output / 162.338041954)) * 4095));
   update_sortie_MCP(timer_update_sortie_MCP);
   Serial.println();
   Serial.print("feedback : ");
@@ -525,27 +477,6 @@ void DoAllWhatNeeded(const unsigned long &now)
   //Serial.println("DoAllWhatNeeded");
 }
 
-/* void update_sortie_MCP(unsigned int timer)
-{
-  static unsigned long last_update_sortie_MCP = 0;
-  int sortie_commande = int(round((sin(output / 162.338041954)) * 4095));
-  if (now - last_update_sortie_MCP > timer_update_sortie_MCP)
-  {
-    if (abs(sortie_MCP - sortie_commande) <= MCP_step)
-    {
-    }
-    else if (sortie_MCP < sortie_commande)
-    {
-      sortie_MCP += MCP_step;
-    }
-    else if (sortie_MCP > sortie_commande)
-    {
-      sortie_MCP -= MCP_step;
-    }
-    last_update_sortie_MCP = now;
-  }
-}
- */
 void update_sortie_MCP(unsigned int timer)
 {
   static unsigned long last_update_sortie_MCP = 0;
@@ -572,9 +503,6 @@ void AskForParameter()
 
 void WaitForParameter()
 {
-  //while (1 < Input_int < 6)
-  //{
-  //updateLed(now, 100);
   if (Serial.available())
   {
     char Input = (Serial.read());
@@ -626,8 +554,7 @@ void WaitForParameter()
       AskForParameter();
       break;
     }
-    //}
-  }
+      }
 }
 char CheckingForIncomingCommand()
 {
@@ -652,9 +579,7 @@ void updateLed(int duree_blink)
     etat_pin_debug = !etat_pin_debug;
     digitalWrite(ledPin, etat_pin_debug);
     last_blink = now;
-    //Serial.print("depuis last Led blink : ");
-    //Serial.println(timer);
-  }
+      }
 }
 //  ###############################################################
 //  ######          définition Fonctions de traitement         #################
