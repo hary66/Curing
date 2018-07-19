@@ -579,7 +579,7 @@ void updateLed(int duree_blink)
     etat_pin_debug = !etat_pin_debug;
     digitalWrite(ledPin, etat_pin_debug);
     last_blink = now;
-      }
+  }
 }
 //  ###############################################################
 //  ######          définition Fonctions de traitement         #################
